@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "ZumQ5AOdMh7u5TdYDLZ4xTTEeULfrPsfwHM5nJI+wxg=",
+  "Source": "ClockingManagement.API",
+  "BasePath": "_content/ClockingManagement.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
