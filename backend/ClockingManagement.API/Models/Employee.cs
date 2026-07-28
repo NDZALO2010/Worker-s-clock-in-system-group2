@@ -1,11 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ClockingManagement.API.Models;
 
 public class Employee
 {
-    [Key]
     public int EmployeeId { get; set; }
 
     [Required]
@@ -20,17 +18,22 @@ public class Employee
     [MaxLength(100)]
     public string LastName { get; set; } = string.Empty;
 
+    [Required]
+    [MaxLength(150)]
+    public string Email { get; set; } = string.Empty;
+
+    [Required]
+    public string PasswordHash { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(20)]
+    public string Role { get; set; } = "Employee";
+
     public int DepartmentId { get; set; }
 
     public int? SupervisorId { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    public bool IsActive { get; set; }
 
     public bool PopiaConsentGranted { get; set; }
-
-    public ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
-
-    public ICollection<FaceProfile> FaceProfiles { get; set; } = new List<FaceProfile>();
-
-    public ICollection<FingerprintProfile> FingerprintProfiles { get; set; } = new List<FingerprintProfile>();
 }
