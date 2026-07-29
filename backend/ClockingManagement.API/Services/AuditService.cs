@@ -14,14 +14,14 @@ public class AuditService : IAuditService
     }
 
     public async Task LogAsync(
-        string action,
+        string userAction,
         string performedBy,
         string ipAddress,
         string details)
     {
         var log = new AuditLog
         {
-            UserAction = action,
+            UserAction = userAction,
             PerformedBy = performedBy,
             IPAddress = ipAddress,
             Timestamp = DateTime.UtcNow,

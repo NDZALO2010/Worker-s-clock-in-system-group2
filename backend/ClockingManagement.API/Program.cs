@@ -64,9 +64,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // JWT Configuration
 
 builder.Services.Configure<JwtSettings>(
-    builder.Configuration.GetSection("Jwt"));
+    builder.Configuration.GetSection("JwtSettings"));
 
-var jwtSettings = builder.Configuration.GetSection("Jwt");
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
 
@@ -116,7 +116,7 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 
 
 // CORS

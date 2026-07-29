@@ -1,11 +1,11 @@
-using System.Threading.Tasks;
+using ClockingManagement.API.Models;
 
 namespace ClockingManagement.API.Interfaces;
 
 public interface IAuditService
 {
     Task LogAsync(
-        string action,
+        string userAction,
         string performedBy,
         string ipAddress,
         string details);
