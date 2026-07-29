@@ -37,7 +37,7 @@
 }
 
 .login-header {
-    margin-bottom: 52px;
+    margin-bottom: 40px;
 }
 
     .login-header h1 {
@@ -306,4 +306,44 @@
         flex-direction: column;
         gap: 18px;
     }
+}
+
+.create-account-text {
+    margin-top: 24px;
+    color: #161616;
+    font-size: 1.05rem;
+    text-align: center;
+}
+
+.create-account-text a {
+    color: #4b42e8;
+    text-decoration: none;
+}
+
+.create-account-text a:hover {
+    text-decoration: underline;
+}
+
+
+.login-error-message {
+    margin: -26px 0 28px;
+    padding: 14px 18px;
+    border: 1px solid #d92d20;
+    border-radius: 12px;
+    color: #b42318;
+    background-color: #fef3f2;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.sign-in-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+}
+
+.login-form input:disabled,
+.password-toggle-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
 }

@@ -1,0 +1,289 @@
+.register-page {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    background-color: #ffffff;
+}
+
+.register-brand-section {
+    display: flex;
+    width: 50%;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    background: radial-gradient( circle at center, rgba(235, 244, 255, 0.35), rgba(196, 220, 248, 0.8) ), #d8e9fb;
+}
+
+.register-logo {
+    width: min(75%, 520px);
+    height: auto;
+    object-fit: contain;
+}
+
+.register-form-section {
+    display: flex;
+    width: 50%;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 60px;
+    background-color: #ffffff;
+}
+
+.register-form-container {
+    width: 100%;
+    max-width: 560px;
+}
+
+.register-header {
+    margin-bottom: 18px;
+}
+
+    .register-header h1 {
+        margin: 0 0 8px;
+        color: #050505;
+        font-size: clamp(2.1rem, 3.5vw, 3rem);
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    .register-header p {
+        margin: 0;
+        color: #161616;
+        font-size: 1.1rem;
+    }
+
+    .register-header a,
+    .terms-checkbox a {
+        color: #4b42e8;
+        text-decoration: none;
+    }
+
+        .register-header a:hover,
+        .terms-checkbox a:hover {
+            text-decoration: underline;
+        }
+
+.register-form {
+    width: 100%;
+}
+
+.register-form-group {
+    margin-bottom: 14px;
+}
+
+    .register-form-group label {
+        display: block;
+        margin: 0 0 6px 4px;
+        color: #111111;
+        font-size: 1.1rem;
+    }
+
+    .register-form-group > input,
+    .register-password-wrapper {
+        width: 100%;
+        min-height: 58px;
+        border: 2px solid #d7d7d7;
+        border-radius: 16px;
+        background-color: #ffffff;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .register-form-group > input {
+        padding: 0 20px;
+        color: #111111;
+        font-size: 1rem;
+        outline: none;
+    }
+
+        .register-form-group > input:focus,
+        .register-password-wrapper:focus-within {
+            border-color: #4b42e8;
+            box-shadow: 0 0 0 4px rgba(75, 66, 232, 0.12);
+        }
+
+.register-password-wrapper {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+    .register-password-wrapper input {
+        flex: 1;
+        min-width: 0;
+        height: 54px;
+        padding: 0 8px 0 20px;
+        border: none;
+        color: #111111;
+        background-color: transparent;
+        font-size: 1rem;
+        outline: none;
+    }
+
+.register-password-toggle {
+    display: grid;
+    width: 58px;
+    height: 54px;
+    flex-shrink: 0;
+    place-items: center;
+    border: none;
+    background-color: transparent;
+    color: #929292;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+    .register-password-toggle:hover {
+        color: #4b42e8;
+    }
+
+    .register-password-toggle:focus-visible {
+        outline: 3px solid rgba(75, 66, 232, 0.25);
+        outline-offset: -5px;
+    }
+
+.verify-password-group {
+    margin-bottom: 18px;
+}
+
+.password-requirement {
+    margin: 4px 0 0 4px;
+    color: #303030;
+    font-size: 0.84rem;
+}
+
+.terms-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 0 0 18px;
+    color: #313131;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+    .terms-checkbox input {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        margin: 0;
+        accent-color: #4b42e8;
+        cursor: pointer;
+    }
+
+.register-error-message {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border: 1px solid #d92d20;
+    border-radius: 12px;
+    color: #b42318;
+    background-color: #fef3f2;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.create-account-button {
+    width: 100%;
+    min-height: 58px;
+    border: none;
+    border-radius: 16px;
+    background-color: #4938e7;
+    box-shadow: 8px 12px 18px rgba(0, 0, 0, 0.24);
+    color: #ffffff;
+    font-size: 1.45rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .create-account-button:hover {
+        background-color: #3d2fd0;
+        box-shadow: 6px 10px 15px rgba(0, 0, 0, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .create-account-button:active {
+        box-shadow: 3px 6px 10px rgba(0, 0, 0, 0.18);
+        transform: translateY(1px);
+    }
+
+    .create-account-button:focus-visible {
+        outline: 4px solid rgba(75, 66, 232, 0.25);
+        outline-offset: 4px;
+    }
+
+@media (max-width: 1000px) {
+    .register-brand-section {
+        width: 44%;
+        padding: 35px;
+    }
+
+    .register-form-section {
+        width: 56%;
+        padding: 35px 40px;
+    }
+
+    .register-logo {
+        width: 90%;
+    }
+}
+
+@media (max-width: 760px) {
+    .register-page {
+        display: block;
+    }
+
+    .register-brand-section {
+        width: 100%;
+        min-height: 250px;
+        padding: 30px;
+    }
+
+    .register-logo {
+        width: min(70%, 330px);
+        max-height: 195px;
+    }
+
+    .register-form-section {
+        width: 100%;
+        min-height: auto;
+        padding: 45px 24px;
+    }
+
+    .register-form-container {
+        max-width: 600px;
+    }
+
+    .register-header h1 {
+        font-size: 2.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-brand-section {
+        min-height: 205px;
+    }
+
+    .register-logo {
+        width: min(85%, 280px);
+        max-height: 160px;
+    }
+
+    .register-form-section {
+        padding: 36px 20px;
+    }
+
+    .register-header h1 {
+        font-size: 2rem;
+    }
+
+    .register-header p {
+        font-size: 1rem;
+    }
+
+    .terms-checkbox {
+        font-size: 0.82rem;
+    }
+}
