@@ -1,6 +1,0 @@
-@BiometricsAIBackend_HostAddress = http://localhost:5121
-
-GET {{BiometricsAIBackend_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
