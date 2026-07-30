@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./AttendanceClock.css";
-import logo from "../assets/clockit-logo.png";
+import logo from "../assets/logo.png";
 
 /**
  * AttendanceClock

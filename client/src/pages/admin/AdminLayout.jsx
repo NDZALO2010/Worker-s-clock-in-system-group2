@@ -1,5 +1,5 @@
 import { NavLink, Link, Outlet } from "react-router-dom";
-import logo from "../../assets/clockit-logo.png";
+import logo from "../../assets/logo.png";
 import "./AdminLayout.css";
 
 const ADMIN_NAME = "Bokang Ngwetjana";

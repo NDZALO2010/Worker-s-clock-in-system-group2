@@ -8,7 +8,7 @@ function Landing() {
   return (
     <div className="landing-page">
       <header className="landing-topbar">
-        <Link to="/admin" className="admin-link">Admin Portal</Link>
+        <Link to="/login" className="admin-link">Admin Portal</Link>
       </header>
 
       <main className="landing-main">

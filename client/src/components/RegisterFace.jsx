@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import "./RegisterFace.css";
-import logo from "../assets/clockit-logo.png";
+import logo from "../assets/logo.png";
 
 /**
  * RegisterFace

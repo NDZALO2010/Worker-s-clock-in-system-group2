@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import logo from "../../assets/logo.png";
 import "./Login.css";
 
 function Login() {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -67,6 +68,10 @@ function Login() {
             */
 
             console.log("Login data ready for backend:", loginData);
+
+            // Temporary frontend navigation.
+            // Later, move this after a successful backend login response.
+            navigate("/admin");
 
             
         } catch (error) {
