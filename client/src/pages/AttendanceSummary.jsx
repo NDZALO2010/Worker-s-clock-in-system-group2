@@ -1,90 +1,171 @@
-import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
-import logo from '../assets/logo.png'
-import './AttendanceSummary.css'
+import { useMemo, useState } from "react";
+import { FaArrowLeft, FaSearch } from "react-icons/fa";
+import { Link } from "react-router-dom";
+
+import logo from "../assets/logo.png";
+import "./AttendanceSummary.css";
+import "./admin/Dashboard.jsx"
 
 const RECORDS = [
-  { date: '20 Jul', day: 'Mon', checkIn: '09:25', checkOut: '16:02', status: 'Late', hours: '6h 37m' },
-  { date: '21 Jul', day: 'Tue', checkIn: '07:55', checkOut: '16:05', status: 'Present', hours: '8h 10m' },
-  { date: '22 Jul', day: 'Wed', checkIn: '08:02', checkOut: '16:10', status: 'Present', hours: '8h 08m' },
-  { date: '23 Jul', day: 'Thu', checkIn: '--:--', checkOut: '--:--', status: 'Absent', hours: '--:--' },
-  { date: '24 Jul', day: 'Fri', checkIn: '07:58', checkOut: 'In progress', status: 'Present', hours: '--:--' },
-]
+    {
+        employeeId: "336001",
+        employeeName: "Bokang Ngwetjana",
+        date: "20 Jul",
+        day: "Mon",
+        checkIn: "09:25",
+        checkOut: "16:02",
+        status: "Late",
+        hours: "6h 37m",
+    },
+    {
+        employeeId: "336002",
+        employeeName: "Thobile Nsima",
+        date: "21 Jul",
+        day: "Tue",
+        checkIn: "07:55",
+        checkOut: "16:05",
+        status: "Present",
+        hours: "8h 10m",
+    },
+    {
+        employeeId: "336003",
+        employeeName: "Retang Maloma",
+        date: "22 Jul",
+        day: "Wed",
+        checkIn: "08:02",
+        checkOut: "16:10",
+        status: "Present",
+        hours: "8h 08m",
+    },
+    {
+        employeeId: "336004",
+        employeeName: "Bonolo Mokgwadi",
+        date: "23 Jul",
+        day: "Thu",
+        checkIn: "--:--",
+        checkOut: "--:--",
+        status: "Absent",
+        hours: "--:--",
+    },
+    {
+        employeeId: "336005",
+        employeeName: "Hellen Anna",
+        date: "24 Jul",
+        day: "Fri",
+        checkIn: "07:58",
+        checkOut: "In progress",
+        status: "Present",
+        hours: "--:--",
+    },
+];
 
 const STATUS_CLASS = {
-  Late: 'status-late',
-  Present: 'status-present',
-  Absent: 'status-absent',
-}
+    Late: "status-late",
+    Present: "status-present",
+    Absent: "status-absent",
+};
 
 function AttendanceSummary() {
-  const name = 'Thabiso Bosetsi'
-  const employeeId = '222946276'
+    const [searchTerm, setSearchTerm] = useState("");
 
-  const { weeklyTotal, onTimeRate } = useMemo(() => {
-    const daysWithHours = RECORDS.filter((r) => r.hours !== '--:--')
-    let totalMinutes = 0
-    daysWithHours.forEach((r) => {
-      const match = r.hours.match(/(\d+)h\s*(\d+)m/)
-      if (match) totalMinutes += Number(match[1]) * 60 + Number(match[2])
-    })
-    const hours = Math.floor(totalMinutes / 60)
-    const minutes = totalMinutes % 60
+    const filteredRecords = useMemo(() => {
+        const searchValue = searchTerm.trim().toLowerCase();
 
-    const trackedDays = RECORDS.filter((r) => r.status !== 'Absent')
-    const onTimeDays = trackedDays.filter((r) => r.status === 'Present')
-    const rate = trackedDays.length
-      ? Math.round((onTimeDays.length / trackedDays.length) * 100)
-      : 0
+        if (!searchValue) {
+            return RECORDS;
+        }
 
-    return { weeklyTotal: `${hours}h ${minutes}m`, onTimeRate: rate }
-  }, [])
+        return RECORDS.filter((record) =>
+            [
+                record.employeeId,
+                record.employeeName,
+                record.date,
+                record.day,
+                record.status,
+            ].some((value) => value.toLowerCase().includes(searchValue)),
+        );
+    }, [searchTerm]);
 
-  return (
-    <div className="summary-page">
-      <header className="summary-header">
-        <img src={logo} alt="Clock It — Authenticate. Secure. Trust." className="summary-logo" />
-        <div className="summary-title-bar">
-          Attendance Summary : {name} ({employeeId})
-        </div>
-      </header>
+    return (
+        <main className="attendance-sheet-page">
+            <section className="attendance-sheet-container">
+                <header className="attendance-sheet-header">
+                    <img
+                        src={logo}
+                        alt="Clock It - Authenticate, Secure, Trust"
+                        className="attendance-sheet-logo"
+                    />
 
-      <main className="summary-main">
-        <div className="summary-card">
-          <table className="summary-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Day</th>
-                <th>Check in</th>
-                <th>Check out</th>
-                <th>Status</th>
-                <th>Total hours</th>
-              </tr>
-            </thead>
-            <tbody>
-              {RECORDS.map((r) => (
-                <tr key={r.date}>
-                  <td>{r.date}</td>
-                  <td>{r.day}</td>
-                  <td>{r.checkIn}</td>
-                  <td>{r.checkOut}</td>
-                  <td className={STATUS_CLASS[r.status]}>{r.status}</td>
-                  <td>{r.hours}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <h1>Attendance Sheet</h1>
+                </header>
 
-          <div className="summary-footer">
-            Weekly total&nbsp;&nbsp;:{weeklyTotal} | On time rate : {onTimeRate}&nbsp;%
-          </div>
-        </div>
+                <section className="attendance-sheet-content">
+                    <div className="attendance-search-wrapper">
+                        <FaSearch className="attendance-search-icon" aria-hidden="true" />
 
-        <Link to="/" className="back-btn">Back</Link>
-      </main>
-    </div>
-  )
+                        <input
+                            type="search"
+                            value={searchTerm}
+                            onChange={(event) => setSearchTerm(event.target.value)}
+                            placeholder="Search"
+                            aria-label="Search attendance records"
+                        />
+                    </div>
+
+                    <div className="attendance-table-wrapper">
+                        <table className="attendance-sheet-table">
+                            <thead>
+                                <tr>
+                                    <th>EMP ID</th>
+                                    <th>EMP Full Names</th>
+                                    <th>Date</th>
+                                    <th>Day</th>
+                                    <th>Check in</th>
+                                    <th>Check out</th>
+                                    <th>Status</th>
+                                    <th>Total hours</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {filteredRecords.length > 0 ? (
+                                    filteredRecords.map((record) => (
+                                        <tr
+                                            key={`${record.employeeId}-${record.date}`}
+                                        >
+                                            <td>{record.employeeId}</td>
+                                            <td className="employee-name-cell">
+                                                {record.employeeName}
+                                            </td>
+                                            <td>{record.date}</td>
+                                            <td>{record.day}</td>
+                                            <td>{record.checkIn}</td>
+                                            <td>{record.checkOut}</td>
+                                            <td className={STATUS_CLASS[record.status]}>
+                                                {record.status}
+                                            </td>
+                                            <td>{record.hours}</td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td className="no-records-message" colSpan="8">
+                                            No attendance records found.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <Link to="/admin" className="attendance-back-link">
+                        <span>Back</span>
+                        <FaArrowLeft aria-hidden="true" />
+                    </Link>
+                </section>
+            </section>
+        </main>
+    );
 }
 
-export default AttendanceSummary
+export default AttendanceSummary;

@@ -36,7 +36,7 @@ function Landing() {
             </button>
           </div>
 
-          <Link to="/attendance-summary" className="landing-history-link">
+          <Link to="/personal-history" className="landing-history-link">
             Already checked in? <span>view your personal history</span>
           </Link>
         </div>

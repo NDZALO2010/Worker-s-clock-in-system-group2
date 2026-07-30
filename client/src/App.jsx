@@ -11,12 +11,14 @@ import Settings from "./pages/admin/Settings";
 
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
+import PersonalHistory from "./pages/PersonalHistory";
 
 export default function App() {
     return (
         <Routes>
             {/* Landing */}
             <Route path="/" element={<Landing />} />
+            <Route path="/personal-history" element={<PersonalHistory />} />
 
             {/* Authentication */}
             <Route path="/login" element={<Login />} />
