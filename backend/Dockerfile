@@ -17,4 +17,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 COPY --from=models /models/insightface_arcface.onnx /models/det_10g.onnx ./Models/
+# Disable appsettings.json hot-reload watching: it opens a FileSystemWatcher/inotify
+# instance at startup, which can exceed the host's inotify limit in constrained
+# container environments (observed on Render) and crash the app before it even binds.
+ENV DOTNET_hostBuilder__reloadConfigOnChange=false
 ENTRYPOINT ["dotnet", "BiometricCore.dll"]
