@@ -110,6 +110,36 @@ export default function Employees() {
         }
     }
 
+    async function handleActivate(employee) {
+        setError("");
+        setMessage("");
+        try {
+            await auth.activateUser(employee.employeeId);
+            setMessage("Employee activated.");
+            await load();
+        } catch (err) {
+            setError(extractErrorMessage(err, "Failed to activate employee."));
+        }
+    }
+
+    async function handleDelete(employee) {
+        if (
+            !window.confirm(
+                `Permanently delete ${employee.firstName} ${employee.lastName}? This removes their account, attendance history, and biometric data, and cannot be undone.`,
+            )
+        )
+            return;
+        setError("");
+        setMessage("");
+        try {
+            await auth.deleteUser(employee.employeeId);
+            setMessage("Employee deleted.");
+            await load();
+        } catch (err) {
+            setError(extractErrorMessage(err, "Failed to delete employee."));
+        }
+    }
+
     async function handleEraseBiometrics(employee) {
         if (
             !window.confirm(
@@ -232,11 +262,20 @@ export default function Employees() {
                                             <button type="button" onClick={() => openEditForm(employee)}>
                                                 Edit
                                             </button>
-                                            <button type="button" onClick={() => handleDeactivate(employee)}>
-                                                Deactivate
-                                            </button>
+                                            {employee.isActive ? (
+                                                <button type="button" onClick={() => handleDeactivate(employee)}>
+                                                    Deactivate
+                                                </button>
+                                            ) : (
+                                                <button type="button" onClick={() => handleActivate(employee)}>
+                                                    Activate
+                                                </button>
+                                            )}
                                             <button type="button" onClick={() => handleEraseBiometrics(employee)}>
                                                 Erase biometrics
+                                            </button>
+                                            <button type="button" className="emp-btn-danger" onClick={() => handleDelete(employee)}>
+                                                Delete
                                             </button>
                                         </td>
                                     </tr>

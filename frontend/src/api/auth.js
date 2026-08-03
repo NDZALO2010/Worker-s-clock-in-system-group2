@@ -16,6 +16,14 @@ export function deactivateUser(employeeId) {
     return apiClient.delete(`/auth/users/${employeeId}`).then((res) => res.data);
 }
 
+export function activateUser(employeeId) {
+    return apiClient.post(`/auth/users/${employeeId}/activate`).then((res) => res.data);
+}
+
+export function deleteUser(employeeId) {
+    return apiClient.delete(`/auth/users/${employeeId}/permanent`).then((res) => res.data);
+}
+
 export function listUsers() {
     return apiClient.get("/auth/users").then((res) => res.data);
 }

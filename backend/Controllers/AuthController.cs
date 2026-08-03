@@ -236,6 +236,61 @@ public class AuthController : ControllerBase
         return Ok(new { message = "User deactivated successfully." });
     }
 
+    [HttpPost("users/{employeeId:guid}/activate")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ActivateUser(Guid employeeId)
+    {
+        var employee = await _db.Employees.FindAsync(employeeId);
+        if (employee == null)
+        {
+            return NotFound(new { message = "User not found." });
+        }
+
+        employee.IsActive = true;
+        await _db.SaveChangesAsync();
+        return Ok(new { message = "User activated successfully." });
+    }
+
+    [HttpDelete("users/{employeeId:guid}/permanent")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteUser(Guid employeeId)
+    {
+        if (Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var callerId) && callerId == employeeId)
+        {
+            return BadRequest(new { message = "You cannot delete your own account." });
+        }
+
+        var employee = await _db.Employees.FindAsync(employeeId);
+        if (employee == null)
+        {
+            return NotFound(new { message = "User not found." });
+        }
+
+        _db.Employees.Remove(employee);
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException pgEx &&
+            (pgEx.SqlState == Npgsql.PostgresErrorCodes.ForeignKeyViolation || pgEx.SqlState == Npgsql.PostgresErrorCodes.RestrictViolation))
+        {
+            return Conflict(new { message = "Cannot delete this employee because they are set as supervisor for other employees. Reassign those employees to a different supervisor first." });
+        }
+
+        _db.AuditLogs.Add(new AuditLog
+        {
+            Action = "Employee Deleted",
+            PerformedBy = User.FindFirstValue(ClaimTypes.Email) ?? "Unknown",
+            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown",
+            Timestamp = DateTime.UtcNow,
+            Details = $"Permanently deleted employee {employeeId} ({employee.EmployeeNumber})."
+        });
+        await _db.SaveChangesAsync();
+
+        return Ok(new { message = "User deleted successfully." });
+    }
+
     [HttpGet("users")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ListUsers()

@@ -192,6 +192,11 @@
   opacity: 0.85;
 }
 
+.emp-btn-danger {
+  background: #fef3f2 !important;
+  color: #b42318 !important;
+}
+
 @media (max-width: 860px) {
   .emp-form-grid {
     grid-template-columns: 1fr;
