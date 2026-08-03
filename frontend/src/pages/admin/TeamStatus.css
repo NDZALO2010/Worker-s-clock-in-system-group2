@@ -1,0 +1,106 @@
+.ts-page {
+  width: 100%;
+}
+
+.ts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.ts-header h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--adm-text);
+}
+
+.ts-select {
+  border: none;
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 11px 20px;
+  font-size: 14px;
+  color: var(--adm-text);
+  outline: none;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  min-width: 240px;
+}
+
+.ts-message {
+  border: 1px solid #d92d20;
+  color: #b42318;
+  background-color: #fef3f2;
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.ts-card {
+  background: var(--adm-panel);
+  border-radius: 22px;
+  padding: 28px 32px;
+}
+
+.ts-empty {
+  color: var(--adm-text-muted);
+  margin: 0;
+  padding: 8px 4px;
+}
+
+.ts-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.ts-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+}
+
+.ts-table th,
+.ts-table td {
+  text-align: left;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--adm-border);
+  font-size: 14px;
+  color: var(--adm-text);
+}
+
+.ts-table thead th {
+  color: var(--adm-text-muted);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.ts-status-in {
+  color: #00b95a;
+  font-weight: 600;
+}
+
+.ts-status-out {
+  color: #3a4fd6;
+  font-weight: 600;
+}
+
+.ts-status-absent {
+  color: #ff2020;
+  font-weight: 600;
+}
+
+.ts-status-late {
+  color: #f79009;
+  font-weight: 600;
+}
+
+.ts-status-dayoff {
+  color: var(--adm-text-muted);
+  font-weight: 600;
+}

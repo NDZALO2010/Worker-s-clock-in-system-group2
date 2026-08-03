@@ -1,0 +1,232 @@
+.landing-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, #dce8fb 0%, #c3d7f5 55%, #b4cdf3 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 40%),
+    radial-gradient(circle at 10% 90%, rgba(59, 76, 203, 0.12) 0%, rgba(59, 76, 203, 0) 45%);
+  pointer-events: none;
+}
+
+.landing-topbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 28px 48px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-link {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #4551d6;
+  text-decoration: none;
+}
+
+.admin-link:hover {
+  text-decoration: underline;
+}
+
+.landing-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(32px, 8vw, 120px);
+  padding: 24px 48px 80px;
+  position: relative;
+  z-index: 1;
+  flex-wrap: wrap;
+}
+
+.landing-brand {
+  flex-shrink: 0;
+}
+
+.landing-logo {
+  width: clamp(380px, 42vw, 560px);
+  height: auto;
+  filter: drop-shadow(0 12px 24px rgba(20, 34, 79, 0.15));
+}
+
+.landing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 40px;
+  max-width: 520px;
+}
+
+.landing-headline {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 3.4vw, 40px);
+  line-height: 1.25;
+  color: #10193a;
+  margin: 0;
+}
+
+.landing-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.btn {
+  font-family: 'Poppins', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  padding: 18px 32px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4b5aea 0%, #3a3fc4 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(59, 76, 203, 0.35);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 14px 28px rgba(59, 76, 203, 0.45);
+}
+
+.btn-secondary {
+  background: #e2e5ea;
+  color: #10193a;
+  box-shadow: 0 8px 18px rgba(16, 25, 58, 0.12);
+}
+
+.btn-secondary:hover {
+  background: #d5d9e1;
+}
+
+.landing-history-link {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  color: #10193a;
+  text-decoration: none;
+}
+
+.landing-history-link span {
+  color: #4551d6;
+  font-weight: 600;
+}
+
+.landing-history-link:hover span {
+  text-decoration: underline;
+}
+
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 16, 41, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 10;
+}
+
+.auth-modal {
+  width: 100%;
+  max-width: 380px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px 28px;
+  box-shadow: 0 24px 60px -20px rgba(10, 31, 77, 0.45);
+  text-align: center;
+}
+
+.auth-modal-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #10193a;
+  margin: 0 0 8px;
+}
+
+.auth-modal-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #5b6785;
+  margin: 0 0 24px;
+}
+
+.auth-modal-options {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.auth-modal-option {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 16px 24px;
+  border-radius: 14px;
+  border: 2px solid #dbe1f5;
+  background: #f5f7fd;
+  color: #10193a;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.auth-modal-option:hover {
+  border-color: #4b5aea;
+  background: #eef0ff;
+  transform: translateY(-1px);
+}
+
+.auth-modal-cancel {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5b6785;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.auth-modal-cancel:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .landing-main {
+    flex-direction: column;
+    text-align: center;
+    padding-top: 8px;
+  }
+
+  .landing-content {
+    align-items: center;
+  }
+
+  .landing-actions {
+    max-width: 100%;
+  }
+}

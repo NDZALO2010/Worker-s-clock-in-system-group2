@@ -1,0 +1,203 @@
+.emp-page {
+  width: 100%;
+}
+
+.emp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.emp-header h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--adm-text);
+}
+
+.emp-btn-primary {
+  background: var(--adm-blue);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 11px 28px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.emp-btn-primary:hover {
+  opacity: 0.92;
+}
+
+.emp-btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.emp-btn-cancel {
+  background: none;
+  border: none;
+  color: var(--adm-navy);
+  font-size: 14.5px;
+  font-weight: 500;
+  padding: 8px 4px;
+  cursor: pointer;
+}
+
+.emp-btn-cancel:hover {
+  text-decoration: underline;
+}
+
+.emp-message {
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.emp-message--error {
+  border: 1px solid #d92d20;
+  color: #b42318;
+  background-color: #fef3f2;
+}
+
+.emp-message--success {
+  border: 1px solid #12b76a;
+  color: #027a48;
+  background-color: #ecfdf3;
+}
+
+.emp-card {
+  background: var(--adm-panel);
+  border-radius: 22px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+}
+
+.emp-form-title {
+  margin: 0 0 20px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--adm-text);
+}
+
+.emp-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 32px;
+}
+
+.emp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--adm-text);
+}
+
+.emp-field input,
+.emp-field select {
+  border: none;
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--adm-text);
+  outline: none;
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.emp-field input:focus,
+.emp-field select:focus {
+  box-shadow: 0 0 0 2px var(--adm-blue);
+}
+
+.emp-field--checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.emp-field--checkbox input {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  box-shadow: none;
+}
+
+.emp-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.emp-empty {
+  color: var(--adm-text-muted);
+  margin: 0;
+  padding: 8px 4px;
+}
+
+.emp-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.emp-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.emp-table th,
+.emp-table td {
+  text-align: left;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--adm-border);
+  font-size: 14px;
+  color: var(--adm-text);
+}
+
+.emp-table thead th {
+  color: var(--adm-text-muted);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.emp-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.emp-actions button {
+  border: none;
+  background: var(--adm-blue-light);
+  color: var(--adm-blue);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.emp-actions button:hover {
+  opacity: 0.85;
+}
+
+@media (max-width: 860px) {
+  .emp-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .emp-card {
+    padding: 22px 20px;
+  }
+}

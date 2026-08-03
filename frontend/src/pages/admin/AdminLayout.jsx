@@ -1,0 +1,173 @@
+import { NavLink, Link, Outlet, useNavigate } from "react-router-dom";
+import logo from "../../assets/logo.png";
+import { useAuth } from "../../context/AuthContext";
+import "./AdminLayout.css";
+
+function DashboardIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="3" y="3" width="8" height="8" rx="1.5" />
+      <rect x="13" y="3" width="8" height="8" rx="1.5" />
+      <rect x="3" y="13" width="8" height="8" rx="1.5" />
+      <rect x="13" y="13" width="8" height="8" rx="1.5" />
+    </svg>
+  );
+}
+
+function SummaryIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="4" y="3" width="16" height="18" rx="2" />
+      <path d="M8 9h8M8 13h8M8 17h5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SettingsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="12" cy="12" r="3" />
+      <path
+        d="M12 3v2M12 19v2M4.2 6.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 17.8l1.4-1.4M18.4 5.6l1.4-1.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function TeamIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="8" cy="8" r="3" />
+      <circle cx="16" cy="9" r="2.4" />
+      <path d="M3 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5M14 15c1.6 0 3.4 1 4 3.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function EmployeesIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c1.2-4.2 4-6.5 8-6.5s6.8 2.3 8 6.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M6 10a6 6 0 0112 0c0 4 1.5 5.5 1.5 5.5h-15S6 14 6 10z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 19a2 2 0 004 0" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function AuditIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M6 3h9l3 3v15H6z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 10h6M9 14h6M9 18h3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IpAccessIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="3" y="6" width="18" height="12" rx="2" />
+      <path d="M7 10h2M7 14h6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <circle cx="12" cy="12" r="11" />
+      <circle cx="12" cy="10" r="3.4" />
+      <path d="M5.5 19c1.4-2.6 3.8-4 6.5-4s5.1 1.4 6.5 4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+const NAV_ITEMS = [
+  { to: "/admin", end: true, label: "Dashboard", icon: DashboardIcon, roles: null },
+  { to: "/admin/attendance-summary", label: "Attendace Summary", icon: SummaryIcon, roles: ["Admin", "Supervisor", "HR"] },
+  { to: "/admin/team-status", label: "Team Status", icon: TeamIcon, roles: ["Admin", "Supervisor", "HR"] },
+  { to: "/admin/employees", label: "Employees", icon: EmployeesIcon, roles: ["Admin"] },
+  { to: "/admin/notifications", label: "Notifications", icon: BellIcon, roles: null },
+  { to: "/admin/audit-logs", label: "Audit Logs", icon: AuditIcon, roles: ["Admin"] },
+  { to: "/admin/ip-access", label: "IP Access", icon: IpAccessIcon, roles: ["Admin"] },
+  { to: "/admin/settings", label: "Settings", icon: SettingsIcon, roles: null },
+];
+
+export default function AdminLayout() {
+  const { employee, hasRole, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const fullName = employee ? `${employee.firstName} ${employee.lastName}` : "";
+  const firstName = employee?.firstName || "";
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => !item.roles || hasRole(...item.roles));
+
+  function handleLogout() {
+    logout();
+    navigate("/");
+  }
+
+  return (
+    <div className="admin-shell">
+      <aside className="admin-sidebar">
+        <div className="admin-brand">
+          <img src={logo} alt="Clock It — Authenticate. Secure. Trust." className="admin-logo" />
+        </div>
+
+        <nav className="admin-nav">
+          {visibleNavItems.map(({ to, end, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) => "admin-nav-link" + (isActive ? " is-active" : "")}
+            >
+              <Icon />
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <Link to="/" className="admin-logout" onClick={handleLogout}>
+          <LogoutIcon />
+          <span>LogOut</span>
+        </Link>
+      </aside>
+
+      <div className="admin-content">
+        <header className="admin-topbar">
+          <h1 className="admin-greeting">Hello {firstName}</h1>
+          <div className="admin-user">
+            <UserIcon />
+            <div className="admin-user-info">
+              <span className="admin-user-name">{fullName}</span>
+              <span className="admin-user-email">{employee?.email}</span>
+            </div>
+          </div>
+        </header>
+
+        <main className="admin-main">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}

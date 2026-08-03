@@ -1,0 +1,20 @@
+# .NET build artifacts
+bin/
+obj/
+*.user
+
+# ML model binaries (large, fetched separately — see backend/Services/FacialRecognitionService.cs
+# for the expected paths: backend/Models/insightface_arcface.onnx, backend/Models/det_10g.onnx)
+backend/Models/*.onnx
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.swp

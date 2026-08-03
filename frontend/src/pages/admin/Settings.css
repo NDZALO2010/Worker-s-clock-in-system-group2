@@ -1,0 +1,158 @@
+/*
+ * Settings (Account Settings) page.
+ * Reuses the color variables declared globally in AdminLayout.css
+ * (--adm-blue, --adm-navy, --adm-panel, --adm-border, --adm-text,
+ * --adm-text-muted) so it stays visually consistent with the rest
+ * of the admin area.
+ */
+
+.set-page {
+  --set-blue-deep: var(--adm-navy, #3a4fd6);
+  --set-blue-mid: var(--adm-blue, #3a4fd6);
+  --set-card-bg: var(--adm-panel, #f6f7fb);
+  --set-text-muted: #9aa0aa;
+
+  width: 100%;
+  font-family: inherit;
+}
+
+.set-page * {
+  box-sizing: border-box;
+}
+
+.set-header {
+  margin-bottom: 24px;
+}
+
+.set-header h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--adm-text, #3a4fd6);
+}
+
+.set-card {
+  background: var(--set-card-bg);
+  border-radius: 22px;
+  padding: 36px 40px 32px;
+  max-width: 900px;
+}
+
+.set-avatar {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  background: var(--set-blue-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 26px;
+}
+
+.set-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 44px;
+  row-gap: 20px;
+}
+
+.set-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.set-field-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--adm-text, #3a4fd6);
+}
+
+.set-field-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.set-field-input {
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 12px 38px 12px 18px;
+  font-size: 14px;
+  color: var(--adm-text, #3a4fd6);
+  outline: none;
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.set-field-input::placeholder {
+  color: #c6c9cf;
+}
+
+.set-field-input:read-only {
+  color: var(--set-text-muted);
+}
+
+.set-field-input:focus {
+  box-shadow: 0 0 0 2px var(--set-blue-mid);
+}
+
+.set-field-pencil {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.set-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 28px;
+}
+
+.set-btn-save {
+  background: #3a4fd6;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 11px 36px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.set-btn-save:hover {
+  background: #3a4fd6;
+}
+
+.set-btn-cancel {
+  background: none;
+  border: none;
+  color: var(--set-blue-deep);
+  font-size: 14.5px;
+  font-weight: 500;
+  padding: 8px 4px;
+  cursor: pointer;
+}
+
+.set-btn-cancel:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 860px) {
+  .set-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .set-card {
+    padding: 26px 22px;
+  }
+}
