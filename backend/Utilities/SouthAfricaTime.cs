@@ -14,6 +14,9 @@ public static class SouthAfricaTime
     public static DateTime ToSast(DateTime utcInstant) =>
         DateTime.SpecifyKind(utcInstant, DateTimeKind.Utc) + Offset;
 
+    public static DateTime ToUtc(DateTime sastInstant) =>
+        DateTime.SpecifyKind(sastInstant - Offset, DateTimeKind.Utc);
+
     /// <summary>
     /// Today's SAST calendar date, tagged as Kind=Utc so it can be written to / compared
     /// against "timestamp with time zone" columns (matches the AttendanceDate convention).

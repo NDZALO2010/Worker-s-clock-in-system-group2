@@ -4,16 +4,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BiometricCore.Services;
 
+/// <summary>
+/// Periodically closes out attendance sessions still open past their work day's end time,
+/// so a forgotten clock-out doesn't permanently block that employee's next clock-in.
+/// </summary>
 public class MissedClockOutCheckService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<MissedClockOutCheckService> _logger;
-    private static readonly TimeSpan CheckInterval = TimeSpan.FromHours(24);
+    private readonly IConfiguration _config;
+    private static readonly TimeSpan CheckInterval = TimeSpan.FromMinutes(15);
 
-    public MissedClockOutCheckService(IServiceProvider serviceProvider, ILogger<MissedClockOutCheckService> logger)
+    public MissedClockOutCheckService(IServiceProvider serviceProvider, ILogger<MissedClockOutCheckService> logger, IConfiguration config)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _config = config;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -24,42 +30,60 @@ public class MissedClockOutCheckService : BackgroundService
         {
             try
             {
-                await CheckForMissedClockOutsAsync(stoppingToken);
+                await AutoCloseOverdueSessionsAsync(stoppingToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Missed clock-out check failed.");
+                _logger.LogError(ex, "Missed clock-out auto-close check failed.");
             }
         }
         while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
-    private async Task CheckForMissedClockOutsAsync(CancellationToken stoppingToken)
+    private async Task AutoCloseOverdueSessionsAsync(CancellationToken stoppingToken)
     {
         using var scope = _serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
 
-        DateTime yesterday = SouthAfricaTime.TodayAsUtcTaggedDate().AddDays(-1);
+        var workEndTime = TimeSpan.Parse(_config["Attendance:WorkEndTime"] ?? "16:00:00");
+        DateTime nowSast = SouthAfricaTime.Now;
+        DateTime today = SouthAfricaTime.TodayAsUtcTaggedDate();
 
-        var missedRecords = await db.Attendance
+        // Overdue = any earlier day still open, or today once SAST local time has passed WorkEndTime.
+        var overdueRecords = await db.Attendance
             .Include(a => a.Employee)
-            .Where(a => a.AttendanceDate == yesterday && a.ClockOut == null)
+            .Where(a => a.ClockOut == null &&
+                (a.AttendanceDate < today || (a.AttendanceDate == today && nowSast.TimeOfDay >= workEndTime)))
             .ToListAsync(stoppingToken);
 
-        foreach (var record in missedRecords)
+        if (overdueRecords.Count == 0)
         {
-            await notificationService.NotifyAsync(record.EmployeeId, "MissedClockOut", $"You did not clock out on {yesterday:yyyy-MM-dd}. Please contact your supervisor if this is an error.");
+            return;
+        }
+
+        DateTime nowUtc = DateTime.UtcNow;
+        foreach (var record in overdueRecords)
+        {
+            DateTime sastCloseInstant = record.AttendanceDate.Add(workEndTime);
+            DateTime workEndUtc = SouthAfricaTime.ToUtc(sastCloseInstant);
+
+            // A late/evening clock-in can occur after that day's WorkEndTime has already
+            // passed; backdating ClockOut to WorkEndTime would then put it before ClockIn.
+            // In that case, close the session at the moment it's detected instead.
+            record.ClockOut = workEndUtc > record.ClockIn ? workEndUtc : nowUtc;
+
+            await notificationService.NotifyAsync(record.EmployeeId, "AutoClockOut",
+                $"You were automatically clocked out at {workEndTime:hh\\:mm} on {record.AttendanceDate:yyyy-MM-dd} because no clock-out was recorded. Contact your supervisor if this is incorrect.");
 
             if (record.Employee.SupervisorId.HasValue)
             {
-                await notificationService.NotifyAsync(record.Employee.SupervisorId.Value, "MissedClockOut", $"{record.Employee.FirstName} {record.Employee.LastName} did not clock out on {yesterday:yyyy-MM-dd}.");
+                await notificationService.NotifyAsync(record.Employee.SupervisorId.Value, "AutoClockOut",
+                    $"{record.Employee.FirstName} {record.Employee.LastName} was automatically clocked out at {workEndTime:hh\\:mm} on {record.AttendanceDate:yyyy-MM-dd} (missed clock-out).");
             }
         }
 
-        if (missedRecords.Count > 0)
-        {
-            _logger.LogInformation("Missed clock-out check found {Count} record(s) for {Date}.", missedRecords.Count, yesterday);
-        }
+        await db.SaveChangesAsync(stoppingToken);
+        _logger.LogInformation("Auto-closed {Count} overdue attendance session(s).", overdueRecords.Count);
     }
 }
