@@ -23,10 +23,9 @@ public class AttendanceController : ControllerBase
     public async Task<IActionResult> ClockIn([FromForm] ClockInRequestDto dto)
     {
         bool hasFace = dto.FaceImage != null && dto.FaceImage.Length > 0;
-        bool hasFingerprint = dto.FingerprintImage != null && dto.FingerprintImage.Length > 0;
 
-        if (!hasFace && !hasFingerprint)
-            return BadRequest(new { message = "A face image or fingerprint scan is required for biometric verification." });
+        if (!hasFace)
+            return BadRequest(new { message = "A face image is required for biometric verification." });
 
         var result = await _attendanceService.ClockInAsync(dto);
         if (!result.Success)
@@ -43,10 +42,9 @@ public class AttendanceController : ControllerBase
     public async Task<IActionResult> ClockOut([FromForm] ClockOutRequestDto dto)
     {
         bool hasFace = dto.FaceImage != null && dto.FaceImage.Length > 0;
-        bool hasFingerprint = dto.FingerprintImage != null && dto.FingerprintImage.Length > 0;
 
-        if (!hasFace && !hasFingerprint)
-            return BadRequest(new { message = "A face image or fingerprint scan is required for biometric verification." });
+        if (!hasFace)
+            return BadRequest(new { message = "A face image is required for biometric verification." });
 
         var result = await _attendanceService.ClockOutAsync(dto);
         if (!result.Success)

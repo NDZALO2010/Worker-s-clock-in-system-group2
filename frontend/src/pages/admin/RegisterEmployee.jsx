@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as auth from "../../api/auth";
 import * as faces from "../../api/faces";
-import * as fingerprints from "../../api/fingerprints";
 import { extractErrorMessage } from "../../api/client";
 import "./RegisterEmployee.css";
 
@@ -23,7 +22,6 @@ const ROLES = ["Employee", "Supervisor", "Admin", "HR"];
 const STEPS = [
     { key: "details", label: "Personal details" },
     { key: "face", label: "Face enrollment" },
-    { key: "fingerprint", label: "Fingerprint (optional)" },
     { key: "done", label: "Done" },
 ];
 
@@ -108,11 +106,6 @@ export default function RegisterEmployee() {
     const [faceStatus, setFaceStatus] = useState("idle"); // idle | scanning | success | error
     const [faceError, setFaceError] = useState("");
     const [showFaceSuccessPopup, setShowFaceSuccessPopup] = useState(false);
-
-    // Step 3: fingerprint enrollment (optional)
-    const [fingerprintFile, setFingerprintFile] = useState(null);
-    const [fingerprintStatus, setFingerprintStatus] = useState("idle"); // idle | saving | success | error | skipped
-    const [fingerprintError, setFingerprintError] = useState("");
 
     function handleChange(event) {
         const { name, value, type, checked } = event.target;
@@ -204,34 +197,6 @@ export default function RegisterEmployee() {
         const timer = setTimeout(() => setShowFaceSuccessPopup(false), 2500);
         return () => clearTimeout(timer);
     }, [showFaceSuccessPopup]);
-
-    function handleFingerprintFileChange(event) {
-        setFingerprintFile(event.target.files?.[0] || null);
-        setFingerprintStatus("idle");
-        setFingerprintError("");
-    }
-
-    async function handleRegisterFingerprint() {
-        if (!fingerprintFile) {
-            setFingerprintError("Choose a fingerprint scan image first.");
-            return;
-        }
-
-        setFingerprintStatus("saving");
-        setFingerprintError("");
-        try {
-            await fingerprints.registerFingerprint(createdEmployee.employeeId, fingerprintFile, fingerprintFile.name);
-            setFingerprintStatus("success");
-        } catch (err) {
-            setFingerprintError(extractErrorMessage(err, "Fingerprint registration failed."));
-            setFingerprintStatus("error");
-        }
-    }
-
-    function handleSkipFingerprint() {
-        setFingerprintStatus("skipped");
-        setStepIndex(3);
-    }
 
     return (
         <div className="reg-page">
@@ -363,7 +328,7 @@ export default function RegisterEmployee() {
                                     Retake
                                 </button>
                                 <button type="button" className="reg-btn-primary" onClick={() => setStepIndex(2)}>
-                                    Continue to fingerprint
+                                    Continue
                                 </button>
                             </div>
                         </>
@@ -391,45 +356,6 @@ export default function RegisterEmployee() {
                 </div>
             )}
 
-            {step === "fingerprint" && createdEmployee && (
-                <div className="reg-card">
-                    <h2 className="reg-card-title">Fingerprint enrollment (optional)</h2>
-                    <p className="reg-hint">
-                        Fingerprint registration is optional and can be added later from the employee list. Upload a
-                        fingerprint scan image to enroll one now.
-                    </p>
-
-                    <input type="file" accept="image/*" onChange={handleFingerprintFileChange} />
-
-                    {fingerprintStatus === "error" && <p className="reg-message reg-message--error">{fingerprintError}</p>}
-                    {fingerprintStatus === "success" && (
-                        <p className="reg-message reg-message--success">Fingerprint registered successfully.</p>
-                    )}
-
-                    <div className="reg-form-actions">
-                        {fingerprintStatus === "success" ? (
-                            <button type="button" className="reg-btn-primary" onClick={() => setStepIndex(3)}>
-                                Continue
-                            </button>
-                        ) : (
-                            <>
-                                <button type="button" className="reg-btn-cancel" onClick={handleSkipFingerprint}>
-                                    Skip for now
-                                </button>
-                                <button
-                                    type="button"
-                                    className="reg-btn-primary"
-                                    disabled={fingerprintStatus === "saving"}
-                                    onClick={handleRegisterFingerprint}
-                                >
-                                    {fingerprintStatus === "saving" ? "Saving..." : "Register fingerprint"}
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
-
             {step === "done" && createdEmployee && (
                 <div className="reg-card">
                     <h2 className="reg-card-title">Employee registered</h2>
@@ -438,11 +364,11 @@ export default function RegisterEmployee() {
                             {createdEmployee.firstName} {createdEmployee.lastName} ({createdEmployee.employeeNumber})
                         </li>
                         <li>Face enrollment: {faceStatus === "success" ? "Complete" : "Not completed"}</li>
-                        <li>
-                            Fingerprint enrollment:{" "}
-                            {fingerprintStatus === "success" ? "Complete" : "Skipped — can be added later"}
-                        </li>
                     </ul>
+                    <p className="reg-hint">
+                        Fingerprint sign-in uses this employee's own device sensor, so it isn't set up here — once
+                        they log in to their portal, they can register it from Settings.
+                    </p>
                     <div className="reg-form-actions">
                         <button type="button" className="reg-btn-primary" onClick={() => navigate("/admin/employees")}>
                             Back to employees

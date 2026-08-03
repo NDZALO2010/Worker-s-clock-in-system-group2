@@ -12,7 +12,6 @@ public class AttendanceService : IAttendanceService
 {
     private readonly AppDbContext _db;
     private readonly IFacialRecognitionService _facialService;
-    private readonly IFingerprintService _fingerprintService;
     private readonly INotificationService _notificationService;
     private readonly IAttendanceHubNotifier _hubNotifier;
     private readonly IConfiguration _config;
@@ -26,7 +25,6 @@ public class AttendanceService : IAttendanceService
     public AttendanceService(
         AppDbContext db,
         IFacialRecognitionService facialService,
-        IFingerprintService fingerprintService,
         INotificationService notificationService,
         IAttendanceHubNotifier hubNotifier,
         IConfiguration config,
@@ -34,7 +32,6 @@ public class AttendanceService : IAttendanceService
     {
         _db = db;
         _facialService = facialService;
-        _fingerprintService = fingerprintService;
         _notificationService = notificationService;
         _hubNotifier = hubNotifier;
         _config = config;
@@ -54,8 +51,58 @@ public class AttendanceService : IAttendanceService
 
     public async Task<(bool Success, string Message, Guid? AttendanceId, string? EmployeeName)> ClockInAsync(ClockInRequestDto dto)
     {
+        var geofence = CheckGeofence(dto.Latitude, dto.Longitude);
+        if (!geofence.WithinZone)
+        {
+            return (false, geofence.Message!, null, null);
+        }
+
+        var identification = await IdentifyEmployeeByBiometricAsync(dto.FaceImage);
+        if (!identification.EmployeeId.HasValue)
+        {
+            _logger.LogWarning("Unrecognized {Method} attempted clock-in. Max confidence: {Score}", identification.Method, identification.Confidence);
+            return (false, identification.Error ?? "Biometric verification failed.", null, null);
+        }
+
+        return await ClockInCoreAsync(identification.EmployeeId.Value, dto.Latitude, dto.Longitude, dto.DeviceName, identification.Confidence, identification.Method);
+    }
+
+    /// <summary>
+    /// Clock-in path for identities already proven out-of-band (a verified WebAuthn assertion) —
+    /// no biometric image or matching involved, so it skips straight to the shared recording logic.
+    /// </summary>
+    public async Task<(bool Success, string Message, Guid? AttendanceId, string? EmployeeName)> ClockInVerifiedAsync(Guid employeeId, double latitude, double longitude, string deviceName)
+    {
+        var geofence = CheckGeofence(latitude, longitude);
+        if (!geofence.WithinZone)
+        {
+            return (false, geofence.Message!, null, null);
+        }
+
+        return await ClockInCoreAsync(employeeId, latitude, longitude, deviceName, confidence: 1.0f, method: "Fingerprint");
+    }
+
+    public async Task<(bool Success, string Message, string? EmployeeName)> ClockOutAsync(ClockOutRequestDto dto)
+    {
+        var identification = await IdentifyEmployeeByBiometricAsync(dto.FaceImage);
+        if (!identification.EmployeeId.HasValue)
+        {
+            _logger.LogWarning("Unrecognized {Method} attempted clock-out. Max confidence: {Score}", identification.Method, identification.Confidence);
+            return (false, identification.Error ?? "Biometric verification failed.", null);
+        }
+
+        return await ClockOutCoreAsync(identification.EmployeeId.Value, identification.Method);
+    }
+
+    public async Task<(bool Success, string Message, string? EmployeeName)> ClockOutVerifiedAsync(Guid employeeId, double latitude, double longitude, string deviceName)
+    {
+        return await ClockOutCoreAsync(employeeId, "Fingerprint");
+    }
+
+    private (bool WithinZone, string? Message) CheckGeofence(double latitude, double longitude)
+    {
         var nearestZone = _geofenceZones
-            .Select(zone => (Zone: zone, Distance: GeoUtility.CalculateDistanceMeters(dto.Latitude, dto.Longitude, zone.Latitude, zone.Longitude)))
+            .Select(zone => (Zone: zone, Distance: GeoUtility.CalculateDistanceMeters(latitude, longitude, zone.Latitude, zone.Longitude)))
             .OrderBy(z => z.Distance)
             .First();
 
@@ -63,17 +110,15 @@ public class AttendanceService : IAttendanceService
         if (!withinAnyZone)
         {
             _logger.LogWarning("Clock-in rejected: Outside all geofence zones (nearest: {Zone}, {Distance}m away)", nearestZone.Zone.Name, nearestZone.Distance);
-            return (false, $"Clock-in rejected: You are outside all permitted work zones. Nearest zone is \"{nearestZone.Zone.Name}\", {Math.Round(nearestZone.Distance)}m away.", null, null);
+            return (false, $"Clock-in rejected: You are outside all permitted work zones. Nearest zone is \"{nearestZone.Zone.Name}\", {Math.Round(nearestZone.Distance)}m away.");
         }
 
-        var identification = await IdentifyEmployeeByBiometricAsync(dto.FaceImage, dto.FingerprintImage);
-        if (!identification.EmployeeId.HasValue)
-        {
-            _logger.LogWarning("Unrecognized {Method} attempted clock-in. Max confidence: {Score}", identification.Method, identification.Confidence);
-            return (false, identification.Error ?? "Biometric verification failed.", null, null);
-        }
+        return (true, null);
+    }
 
-        Guid employeeId = identification.EmployeeId.Value;
+    private async Task<(bool Success, string Message, Guid? AttendanceId, string? EmployeeName)> ClockInCoreAsync(
+        Guid employeeId, double latitude, double longitude, string deviceName, float confidence, string method)
+    {
         DateTime now = DateTime.UtcNow;
         DateTime sastToday = SouthAfricaTime.ToSast(now).Date;
 
@@ -92,11 +137,11 @@ public class AttendanceService : IAttendanceService
             AttendanceDate = sastToday,
             ClockIn = now,
             ClockOut = null,
-            Lat = dto.Latitude,
-            Long = dto.Longitude,
-            DeviceName = dto.DeviceName,
-            Confidence = identification.Confidence,
-            AuthMethod = identification.Method
+            Lat = latitude,
+            Long = longitude,
+            DeviceName = deviceName,
+            Confidence = confidence,
+            AuthMethod = method
         };
 
         _db.Attendance.Add(attendanceRecord);
@@ -111,7 +156,7 @@ public class AttendanceService : IAttendanceService
             return (false, "You already have an active clock-in session for today. Please clock out first.", null, null);
         }
 
-        _logger.LogInformation("Employee {EmployeeId} clocked in successfully via {Method}.", employeeId, identification.Method);
+        _logger.LogInformation("Employee {EmployeeId} clocked in successfully via {Method}.", employeeId, method);
 
         var employee = await _db.Employees.FindAsync(employeeId);
         if (employee != null && AttendanceCalculator.IsLate(now, _lateThreshold))
@@ -125,22 +170,13 @@ public class AttendanceService : IAttendanceService
 
         await _hubNotifier.BroadcastAttendanceUpdateAsync(employeeId);
 
-        var identifiedEmployee = await _db.Employees.FindAsync(employeeId);
-        string? employeeName = identifiedEmployee != null ? $"{identifiedEmployee.FirstName} {identifiedEmployee.LastName}" : null;
+        string? employeeName = employee != null ? $"{employee.FirstName} {employee.LastName}" : null;
 
         return (true, "Clock-in recorded successfully. Welcome!", attendanceRecord.AttendanceId, employeeName);
     }
 
-    public async Task<(bool Success, string Message, string? EmployeeName)> ClockOutAsync(ClockOutRequestDto dto)
+    private async Task<(bool Success, string Message, string? EmployeeName)> ClockOutCoreAsync(Guid employeeId, string method)
     {
-        var identification = await IdentifyEmployeeByBiometricAsync(dto.FaceImage, dto.FingerprintImage);
-        if (!identification.EmployeeId.HasValue)
-        {
-            _logger.LogWarning("Unrecognized {Method} attempted clock-out. Max confidence: {Score}", identification.Method, identification.Confidence);
-            return (false, identification.Error ?? "Biometric verification failed.", null);
-        }
-
-        Guid employeeId = identification.EmployeeId.Value;
         DateTime now = DateTime.UtcNow;
 
         var session = await _db.Attendance
@@ -155,7 +191,7 @@ public class AttendanceService : IAttendanceService
         _db.Attendance.Update(session);
         await _db.SaveChangesAsync();
 
-        _logger.LogInformation("Employee {EmployeeId} clocked out successfully via {Method}.", employeeId, identification.Method);
+        _logger.LogInformation("Employee {EmployeeId} clocked out successfully via {Method}.", employeeId, method);
 
         double hoursWorked = Math.Round((now - session.ClockIn).TotalHours, 2);
         double overtimeHours = AttendanceCalculator.CalculateOvertimeHours(hoursWorked, _standardDailyHours);
@@ -275,69 +311,39 @@ public class AttendanceService : IAttendanceService
         return Encoding.UTF8.GetBytes(sb.ToString());
     }
 
-    private async Task<(Guid? EmployeeId, float Confidence, string Method, string? Error)> IdentifyEmployeeByBiometricAsync(IFormFile? faceImage, IFormFile? fingerprintImage)
+    private async Task<(Guid? EmployeeId, float Confidence, string Method, string? Error)> IdentifyEmployeeByBiometricAsync(IFormFile? faceImage)
     {
-        if (faceImage != null && faceImage.Length > 0)
+        if (faceImage == null || faceImage.Length == 0)
         {
-            byte[] imageBytes = await ReadAllBytesAsync(faceImage);
-            float[] inputVector;
-
-            try
-            {
-                inputVector = await _facialService.ExtractEmbeddingAsync(imageBytes);
-            }
-            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
-            {
-                return (null, 0f, "Face", $"Facial recognition failed: {ex.Message}");
-            }
-
-            var profiles = await _db.FaceProfiles
-                .Include(fp => fp.Employee)
-                .Where(fp => fp.Employee.IsActive)
-                .ToListAsync();
-
-            var knownProfiles = profiles.ToDictionary(fp => fp.EmployeeId, fp => MathUtility.ToFloatArray(fp.FaceEmbedding));
-            var match = _facialService.MatchFace(inputVector, knownProfiles, threshold: 0.75f);
-
-            if (!match.EmployeeId.HasValue)
-            {
-                return (null, match.SimilarityScore, "Face", "Facial recognition failed: Face not recognized or low confidence score.");
-            }
-
-            return (match.EmployeeId, match.SimilarityScore, "Face", null);
+            return (null, 0f, string.Empty, "Biometric verification is required: provide a face image.");
         }
 
-        if (fingerprintImage != null && fingerprintImage.Length > 0)
+        byte[] imageBytes = await ReadAllBytesAsync(faceImage);
+        float[] inputVector;
+
+        try
         {
-            byte[] scanBytes = await ReadAllBytesAsync(fingerprintImage);
-            float[] inputVector;
-
-            try
-            {
-                inputVector = await _fingerprintService.ExtractTemplateAsync(scanBytes);
-            }
-            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
-            {
-                return (null, 0f, "Fingerprint", $"Fingerprint recognition failed: {ex.Message}");
-            }
-
-            var profiles = await _db.FingerprintProfiles
-                .Include(fp => fp.Employee)
-                .Where(fp => fp.Employee.IsActive)
-                .ToListAsync();
-
-            var knownProfiles = profiles.ToDictionary(fp => fp.EmployeeId, fp => MathUtility.ToFloatArray(fp.FingerprintTemplate));
-            var match = _fingerprintService.MatchFingerprint(inputVector, knownProfiles, threshold: 0.75f);
-
-            if (!match.EmployeeId.HasValue)
-            {
-                return (null, match.SimilarityScore, "Fingerprint", "Fingerprint recognition failed: Fingerprint not recognized or low confidence score.");
-            }
-
-            return (match.EmployeeId, match.SimilarityScore, "Fingerprint", null);
+            inputVector = await _facialService.ExtractEmbeddingAsync(imageBytes);
+        }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+        {
+            return (null, 0f, "Face", $"Facial recognition failed: {ex.Message}");
         }
 
-        return (null, 0f, string.Empty, "Biometric verification is required: provide a face image or fingerprint scan.");
+        var profiles = await _db.FaceProfiles
+            .Include(fp => fp.Employee)
+            .Where(fp => fp.Employee.IsActive)
+            .ToListAsync();
+
+        var knownProfiles = profiles.ToDictionary(fp => fp.EmployeeId, fp => MathUtility.ToFloatArray(fp.FaceEmbedding));
+        var match = _facialService.MatchFace(inputVector, knownProfiles, threshold: 0.75f);
+
+        if (!match.EmployeeId.HasValue)
+        {
+            return (null, match.SimilarityScore, "Face", "Facial recognition failed: Face not recognized or low confidence score.");
+        }
+
+        return (match.EmployeeId, match.SimilarityScore, "Face", null);
     }
 
     private static async Task<byte[]> ReadAllBytesAsync(IFormFile file)

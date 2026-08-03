@@ -11,7 +11,7 @@ public class AppDbContext : DbContext
 
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<FaceProfile> FaceProfiles => Set<FaceProfile>();
-    public DbSet<FingerprintProfile> FingerprintProfiles => Set<FingerprintProfile>();
+    public DbSet<WebAuthnCredential> WebAuthnCredentials => Set<WebAuthnCredential>();
     public DbSet<AttendanceRecord> Attendance => Set<AttendanceRecord>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<Notification> Notifications => Set<Notification>();
@@ -38,9 +38,17 @@ public class AppDbContext : DbContext
             .Property(f => f.FaceEmbedding)
             .HasColumnType("bytea");
 
-        modelBuilder.Entity<FingerprintProfile>()
-            .Property(f => f.FingerprintTemplate)
+        modelBuilder.Entity<WebAuthnCredential>()
+            .Property(c => c.PublicKey)
             .HasColumnType("bytea");
+
+        modelBuilder.Entity<WebAuthnCredential>()
+            .Property(c => c.CredentialId)
+            .HasColumnType("bytea");
+
+        modelBuilder.Entity<WebAuthnCredential>()
+            .HasIndex(c => c.CredentialId)
+            .IsUnique();
 
         // Enforce at the database level that an employee can have at most one open
         // (not yet clocked out) attendance session at a time. This closes a race where

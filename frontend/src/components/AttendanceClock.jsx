@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as attendance from "../api/attendance";
 import { extractErrorMessage } from "../api/client";
+import { useAuth } from "../context/AuthContext";
+import { authenticateAndClock } from "../utils/webauthn";
 import "./AttendanceClock.css";
 import logo from "../assets/logo.png";
 
@@ -157,6 +159,7 @@ function FingerprintIcon() {
 export default function AttendanceClock({ recognizeFace, onSuccess, onFailure }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const mode = location.state?.mode === "checkout" ? "checkout" : "checkin";
   const method = location.state?.method === "fingerprint" ? "fingerprint" : "face";
   const actionLabel = mode === "checkout" ? "Checked out" : "Attendance logged";
@@ -168,6 +171,7 @@ export default function AttendanceClock({ recognizeFace, onSuccess, onFailure })
   const [countdown, setCountdown] = useState(RESULT_HOLD_SECONDS);
   const [cameraError, setCameraError] = useState(false);
   const [fingerprintError, setFingerprintError] = useState("");
+  const [employeeNumberInput, setEmployeeNumberInput] = useState("");
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const timers = useRef([]);
@@ -178,12 +182,12 @@ export default function AttendanceClock({ recognizeFace, onSuccess, onFailure })
   };
 
   const submitScan = useCallback(
-    async ({ faceBlob, fingerprintBlob }) => {
+    async ({ faceBlob }) => {
       const { latitude, longitude } = await getCurrentPosition();
       try {
         const response = await (mode === "checkout"
-          ? attendance.clockOut({ latitude, longitude, deviceName: "Web Browser", faceBlob, fingerprintBlob })
-          : attendance.clockIn({ latitude, longitude, deviceName: "Web Browser", faceBlob, fingerprintBlob }));
+          ? attendance.clockOut({ latitude, longitude, deviceName: "Web Browser", faceBlob })
+          : attendance.clockIn({ latitude, longitude, deviceName: "Web Browser", faceBlob }));
 
         return {
           success: true,
@@ -197,6 +201,25 @@ export default function AttendanceClock({ recognizeFace, onSuccess, onFailure })
     [mode],
   );
 
+  const submitFingerprintScan = useCallback(
+    async (employeeNumber) => {
+      const { latitude, longitude } = await getCurrentPosition();
+      try {
+        const response = await authenticateAndClock({
+          employeeNumber,
+          mode,
+          latitude,
+          longitude,
+          deviceName: "Web Browser",
+        });
+        return { success: true, name: response.employeeName || "", message: response.message };
+      } catch (err) {
+        return { success: false, message: extractErrorMessage(err, "Fingerprint verification failed.") };
+      }
+    },
+    [mode],
+  );
+
   const performRealScan = useCallback(async () => {
     await waitForVideoReady(videoRef.current);
     const faceBlob = await captureFrameBlob(videoRef.current, canvasRef.current);
@@ -204,13 +227,13 @@ export default function AttendanceClock({ recognizeFace, onSuccess, onFailure })
   }, [submitScan]);
 
   const startScan = useCallback(
-    async (fingerprintBlob) => {
+    async (employeeNumberForFingerprint) => {
       setPhase("scanning");
       try {
         const result = await (recognizeFace
           ? recognizeFace()
           : method === "fingerprint"
-            ? submitScan({ fingerprintBlob })
+            ? submitFingerprintScan(employeeNumberForFingerprint)
             : performRealScan());
         if (result?.success) {
           setEmployeeName(result.name || "");
@@ -228,7 +251,7 @@ export default function AttendanceClock({ recognizeFace, onSuccess, onFailure })
         onFailure?.(err);
       }
     },
-    [recognizeFace, performRealScan, submitScan, method, onSuccess, onFailure],
+    [recognizeFace, performRealScan, submitFingerprintScan, method, onSuccess, onFailure],
   );
 
   function handleTryAgain() {
@@ -240,15 +263,15 @@ export default function AttendanceClock({ recognizeFace, onSuccess, onFailure })
     }
   }
 
-  function handleFingerprintFileChange(event) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
+  function handleEmployeeNumberSubmit(event) {
+    event.preventDefault();
+    if (!employeeNumberInput.trim()) return;
     setFingerprintError("");
-    startScan(file);
+    startScan(employeeNumberInput.trim());
   }
 
-  // Kick off the first scan on mount (face mode only — fingerprint waits for a file).
+  // Kick off the first scan on mount (face mode only — fingerprint waits for user interaction,
+  // since triggering the platform authenticator without a user gesture is unreliable on mobile).
   useEffect(() => {
     if (method === "face") {
       startScan();
@@ -290,11 +313,30 @@ export default function AttendanceClock({ recognizeFace, onSuccess, onFailure })
               <span className="scan-ring scan-ring--inner" />
               <FingerprintIcon />
             </div>
-            <p className="clockit-title">Scan your fingerprint to continue</p>
-            <label className="fingerprint-upload-btn">
-              Choose fingerprint scan
-              <input type="file" accept="image/*" onChange={handleFingerprintFileChange} hidden />
-            </label>
+            {isAuthenticated ? (
+              <>
+                <p className="clockit-title">Scan your fingerprint to continue</p>
+                <button type="button" className="fingerprint-upload-btn" onClick={() => startScan()}>
+                  Scan fingerprint
+                </button>
+              </>
+            ) : (
+              <form className="fingerprint-kiosk-form" onSubmit={handleEmployeeNumberSubmit}>
+                <p className="clockit-title">Enter your employee number to continue</p>
+                <input
+                  type="text"
+                  className="fingerprint-employee-input"
+                  value={employeeNumberInput}
+                  onChange={(e) => setEmployeeNumberInput(e.target.value)}
+                  placeholder="Employee number"
+                  autoComplete="off"
+                  required
+                />
+                <button type="submit" className="fingerprint-upload-btn">
+                  Continue
+                </button>
+              </form>
+            )}
             {fingerprintError && <p className="camera-warning">{fingerprintError}</p>}
           </>
         )}

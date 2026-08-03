@@ -1,8 +1,20 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import * as auth from "../../api/auth";
+import * as webauthnApi from "../../api/webauthn";
 import { extractErrorMessage } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import { isWebAuthnSupported, registerFingerprint } from "../../utils/webauthn";
 import "./Settings.css";
+
+function guessDeviceLabel() {
+  const ua = navigator.userAgent || "";
+  if (/iphone/i.test(ua)) return "iPhone";
+  if (/ipad/i.test(ua)) return "iPad";
+  if (/android/i.test(ua)) return "Android device";
+  if (/macintosh/i.test(ua)) return "Mac";
+  if (/windows/i.test(ua)) return "Windows PC";
+  return "This device";
+}
 
 function PencilIcon() {
   return (
@@ -90,6 +102,51 @@ export default function Settings() {
   const [consentLoading, setConsentLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  const [credentials, setCredentials] = useState([]);
+  const [credentialsLoading, setCredentialsLoading] = useState(true);
+  const [registeringFingerprint, setRegisteringFingerprint] = useState(false);
+  const [bioError, setBioError] = useState("");
+  const [bioMessage, setBioMessage] = useState("");
+
+  const loadCredentials = useCallback(() => {
+    setCredentialsLoading(true);
+    webauthnApi
+      .listCredentials()
+      .then(setCredentials)
+      .catch(() => setCredentials([]))
+      .finally(() => setCredentialsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    loadCredentials();
+  }, [loadCredentials]);
+
+  async function handleRegisterFingerprint() {
+    setRegisteringFingerprint(true);
+    setBioError("");
+    setBioMessage("");
+    try {
+      await registerFingerprint({ deviceLabel: guessDeviceLabel() });
+      setBioMessage("Fingerprint registered on this device.");
+      loadCredentials();
+    } catch (err) {
+      setBioError(extractErrorMessage(err, "Fingerprint registration failed."));
+    } finally {
+      setRegisteringFingerprint(false);
+    }
+  }
+
+  async function handleRemoveCredential(id) {
+    setBioError("");
+    setBioMessage("");
+    try {
+      await webauthnApi.deleteCredential(id);
+      loadCredentials();
+    } catch (err) {
+      setBioError(extractErrorMessage(err, "Failed to remove fingerprint credential."));
+    }
+  }
 
   useEffect(() => {
     if (!isAdmin || !employee) return;
@@ -253,6 +310,57 @@ export default function Settings() {
           </div>
         )}
       </form>
+
+      <div className="set-card set-biometrics-card">
+        <h2 className="set-card-title">Biometrics</h2>
+        <p className="set-hint">
+          Register this device's fingerprint sensor so you can clock in and out with a fingerprint
+          instead of a face scan. Registration happens on whichever device you're using right now —
+          for a phone's sensor, open this page on the phone.
+        </p>
+
+        {bioError && <p className="login-error-message">{bioError}</p>}
+        {bioMessage && (
+          <p className="login-error-message" style={{ borderColor: "#12b76a", color: "#027a48", background: "#ecfdf3" }}>
+            {bioMessage}
+          </p>
+        )}
+
+        {!isWebAuthnSupported() && (
+          <p className="set-hint set-hint--warning">
+            This browser or device doesn't support fingerprint sign-in (no platform authenticator was
+            found).
+          </p>
+        )}
+
+        {credentialsLoading ? (
+          <p className="set-hint">Loading registered devices…</p>
+        ) : credentials.length > 0 ? (
+          <ul className="set-cred-list">
+            {credentials.map((cred) => (
+              <li key={cred.id} className="set-cred-item">
+                <span>{cred.deviceLabel}</span>
+                <button type="button" className="set-cred-remove" onClick={() => handleRemoveCredential(cred.id)}>
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="set-hint">No fingerprint is registered on any device yet.</p>
+        )}
+
+        <div className="set-actions">
+          <button
+            type="button"
+            className="set-btn-save"
+            onClick={handleRegisterFingerprint}
+            disabled={registeringFingerprint || !isWebAuthnSupported()}
+          >
+            {registeringFingerprint ? "Waiting for fingerprint…" : "Register this device's fingerprint"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

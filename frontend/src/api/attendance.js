@@ -1,12 +1,11 @@
 import apiClient from "./client";
 
-function buildScanForm({ latitude, longitude, deviceName, faceBlob, fingerprintBlob }) {
+function buildScanForm({ latitude, longitude, deviceName, faceBlob }) {
     const form = new FormData();
     form.append("Latitude", latitude ?? 0);
     form.append("Longitude", longitude ?? 0);
     if (deviceName) form.append("DeviceName", deviceName);
     if (faceBlob) form.append("FaceImage", faceBlob, "face.jpg");
-    if (fingerprintBlob) form.append("FingerprintImage", fingerprintBlob, "fingerprint.jpg");
     return form;
 }
 

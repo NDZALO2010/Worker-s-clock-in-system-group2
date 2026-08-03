@@ -39,7 +39,7 @@ public class Employee
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<FaceProfile> FaceProfiles { get; set; } = new List<FaceProfile>();
-    public ICollection<FingerprintProfile> FingerprintProfiles { get; set; } = new List<FingerprintProfile>();
+    public ICollection<WebAuthnCredential> WebAuthnCredentials { get; set; } = new List<WebAuthnCredential>();
     public ICollection<AttendanceRecord> AttendanceRecords { get; set; } = new List<AttendanceRecord>();
 }
 
@@ -61,11 +61,11 @@ public class FaceProfile
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
-[Table("FingerprintProfiles")]
-public class FingerprintProfile
+[Table("WebAuthnCredentials")]
+public class WebAuthnCredential
 {
     [Key]
-    public Guid FingerprintProfileId { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required]
     public Guid EmployeeId { get; set; }
@@ -74,7 +74,22 @@ public class FingerprintProfile
     public Employee Employee { get; set; } = null!;
 
     [Required]
-    public byte[] FingerprintTemplate { get; set; } = Array.Empty<byte>();
+    public byte[] CredentialId { get; set; } = Array.Empty<byte>();
+
+    [Required]
+    public byte[] PublicKey { get; set; } = Array.Empty<byte>();
+
+    public byte[] UserHandle { get; set; } = Array.Empty<byte>();
+
+    public uint SignCount { get; set; }
+
+    [MaxLength(50)]
+    public string CredType { get; set; } = string.Empty;
+
+    public Guid AaGuid { get; set; }
+
+    [MaxLength(100)]
+    public string DeviceLabel { get; set; } = "Unknown device";
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

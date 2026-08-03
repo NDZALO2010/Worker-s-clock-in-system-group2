@@ -342,10 +342,10 @@ public class AuthController : ControllerBase
         }
 
         var faceProfiles = await _db.FaceProfiles.Where(fp => fp.EmployeeId == employeeId).ToListAsync();
-        var fingerprintProfiles = await _db.FingerprintProfiles.Where(fp => fp.EmployeeId == employeeId).ToListAsync();
+        var webAuthnCredentials = await _db.WebAuthnCredentials.Where(c => c.EmployeeId == employeeId).ToListAsync();
 
         _db.FaceProfiles.RemoveRange(faceProfiles);
-        _db.FingerprintProfiles.RemoveRange(fingerprintProfiles);
+        _db.WebAuthnCredentials.RemoveRange(webAuthnCredentials);
 
         _db.AuditLogs.Add(new AuditLog
         {
@@ -353,7 +353,7 @@ public class AuthController : ControllerBase
             PerformedBy = User.FindFirstValue(ClaimTypes.Email) ?? "Unknown",
             IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown",
             Timestamp = DateTime.UtcNow,
-            Details = $"Erased {faceProfiles.Count} face profile(s) and {fingerprintProfiles.Count} fingerprint profile(s) for employee {employeeId} (POPIA right to erasure)."
+            Details = $"Erased {faceProfiles.Count} face profile(s) and {webAuthnCredentials.Count} WebAuthn credential(s) for employee {employeeId} (POPIA right to erasure)."
         });
 
         await _db.SaveChangesAsync();

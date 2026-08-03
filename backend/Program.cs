@@ -48,13 +48,24 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // 2. Register Application Services
 builder.Services.AddSingleton<IFacialRecognitionService, FacialRecognitionService>();
-builder.Services.AddSingleton<IFingerprintService, FingerprintService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IAttendanceHubNotifier, AttendanceHubNotifier>();
 builder.Services.AddHostedService<MissedClockOutCheckService>();
+
+// WebAuthn (real fingerprint/platform-authenticator support). ServerDomain/Origins must
+// match the frontend's origin, since the ceremony runs against the page the browser loaded,
+// not the backend's own domain.
+builder.Services.AddMemoryCache();
+builder.Services.AddFido2(options =>
+{
+    options.ServerDomain = builder.Configuration["Fido2:ServerDomain"];
+    options.ServerName = builder.Configuration["Fido2:ServerName"] ?? "ClockIT";
+    options.Origins = new HashSet<string>(
+        builder.Configuration.GetSection("Fido2:Origins").Get<string[]>() ?? Array.Empty<string>());
+});
 
 // 3. Configure JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"];

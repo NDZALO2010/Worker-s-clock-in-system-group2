@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http;
-
 namespace BiometricCore.DTOs;
 
 public class ClockInRequestDto
@@ -8,7 +6,6 @@ public class ClockInRequestDto
     public double Longitude { get; set; }
     public string DeviceName { get; set; } = "Mobile/Kiosk";
     public IFormFile? FaceImage { get; set; }
-    public IFormFile? FingerprintImage { get; set; }
 }
 
 public class ClockOutRequestDto
@@ -17,7 +14,6 @@ public class ClockOutRequestDto
     public double Longitude { get; set; }
     public string DeviceName { get; set; } = "Mobile/Kiosk";
     public IFormFile? FaceImage { get; set; }
-    public IFormFile? FingerprintImage { get; set; }
 }
 
 public class TeamStatusDto
@@ -55,10 +51,4 @@ public class FaceRegisterRequestDto
 {
     public Guid EmployeeId { get; set; }
     public IFormFile FaceImage { get; set; } = null!;
-}
-
-public class FingerprintRegisterRequestDto
-{
-    public Guid EmployeeId { get; set; }
-    public IFormFile FingerprintImage { get; set; } = null!;
 }
