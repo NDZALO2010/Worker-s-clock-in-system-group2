@@ -12,7 +12,6 @@ import RegisterEmployee from "./pages/admin/RegisterEmployee";
 import TeamStatus from "./pages/admin/TeamStatus";
 import Notifications from "./pages/admin/Notifications";
 import AuditLogs from "./pages/admin/AuditLogs";
-import IpAccess from "./pages/admin/IpAccess";
 
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
@@ -68,7 +67,6 @@ export default function App() {
                         <Route path="employees" element={<Employees />} />
                         <Route path="employees/new" element={<RegisterEmployee />} />
                         <Route path="audit-logs" element={<AuditLogs />} />
-                        <Route path="ip-access" element={<IpAccess />} />
                     </Route>
                 </Route>
             </Route>

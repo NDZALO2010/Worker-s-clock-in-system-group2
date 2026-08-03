@@ -72,15 +72,6 @@ function AuditIcon() {
   );
 }
 
-function IpAccessIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <rect x="3" y="6" width="18" height="12" rx="2" />
-      <path d="M7 10h2M7 14h6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function LogoutIcon() {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -107,7 +98,6 @@ const NAV_ITEMS = [
   { to: "/admin/employees", label: "Employees", icon: EmployeesIcon, roles: ["Admin"] },
   { to: "/admin/notifications", label: "Notifications", icon: BellIcon, roles: null },
   { to: "/admin/audit-logs", label: "Audit Logs", icon: AuditIcon, roles: ["Admin"] },
-  { to: "/admin/ip-access", label: "IP Access", icon: IpAccessIcon, roles: ["Admin"] },
   { to: "/admin/settings", label: "Settings", icon: SettingsIcon, roles: null },
 ];
 
