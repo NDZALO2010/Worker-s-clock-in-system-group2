@@ -276,7 +276,16 @@ public class AttendanceService : IAttendanceService
         if (faceImage != null && faceImage.Length > 0)
         {
             byte[] imageBytes = await ReadAllBytesAsync(faceImage);
-            float[] inputVector = await _facialService.ExtractEmbeddingAsync(imageBytes);
+            float[] inputVector;
+
+            try
+            {
+                inputVector = await _facialService.ExtractEmbeddingAsync(imageBytes);
+            }
+            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+            {
+                return (null, 0f, "Face", $"Facial recognition failed: {ex.Message}");
+            }
 
             var profiles = await _db.FaceProfiles
                 .Include(fp => fp.Employee)
@@ -297,7 +306,16 @@ public class AttendanceService : IAttendanceService
         if (fingerprintImage != null && fingerprintImage.Length > 0)
         {
             byte[] scanBytes = await ReadAllBytesAsync(fingerprintImage);
-            float[] inputVector = await _fingerprintService.ExtractTemplateAsync(scanBytes);
+            float[] inputVector;
+
+            try
+            {
+                inputVector = await _fingerprintService.ExtractTemplateAsync(scanBytes);
+            }
+            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+            {
+                return (null, 0f, "Fingerprint", $"Fingerprint recognition failed: {ex.Message}");
+            }
 
             var profiles = await _db.FingerprintProfiles
                 .Include(fp => fp.Employee)
