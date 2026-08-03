@@ -4,6 +4,7 @@ using BiometricCore.DTOs;
 using BiometricCore.Entities;
 using BiometricCore.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace BiometricCore.Services;
 
@@ -95,7 +96,16 @@ public class AttendanceService : IAttendanceService
         };
 
         _db.Attendance.Add(attendanceRecord);
-        await _db.SaveChangesAsync();
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            _logger.LogWarning("Concurrent clock-in detected for Employee {EmployeeId}; rejecting duplicate.", employeeId);
+            return (false, "You already have an active clock-in session for today. Please clock out first.", null, null);
+        }
 
         _logger.LogInformation("Employee {EmployeeId} clocked in successfully via {Method}.", employeeId, identification.Method);
 

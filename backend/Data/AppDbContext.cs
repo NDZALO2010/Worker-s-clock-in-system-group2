@@ -41,5 +41,16 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<FingerprintProfile>()
             .Property(f => f.FingerprintTemplate)
             .HasColumnType("bytea");
+
+        // Enforce at the database level that an employee can have at most one open
+        // (not yet clocked out) attendance session at a time. This closes a race where
+        // two near-simultaneous clock-in requests both pass the application-level check
+        // before either commits, leaving a duplicate open session that later blocks
+        // that employee's next legitimate clock-in.
+        modelBuilder.Entity<AttendanceRecord>()
+            .HasIndex(a => a.EmployeeId)
+            .IsUnique()
+            .HasFilter("\"ClockOut\" IS NULL")
+            .HasDatabaseName("IX_Attendance_OneOpenSessionPerEmployee");
     }
 }
