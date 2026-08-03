@@ -74,6 +74,17 @@ function serializeAssertionCredential(credential) {
     };
 }
 
+// DOMException.message alone (e.g. "An unknown error occurred while talking to the credential
+// manager") hides the actual error type, which is the useful part for diagnosing platform
+// authenticator failures — so surface both, and log the full exception for remote debugging.
+function describeCredentialError(err, fallback) {
+    console.error("WebAuthn ceremony failed:", err);
+    if (err instanceof DOMException) {
+        return new Error(`${err.name}: ${err.message || fallback}`);
+    }
+    return err instanceof Error ? err : new Error(fallback);
+}
+
 /**
  * Runs the WebAuthn creation ceremony on this device (triggers its fingerprint/platform
  * authenticator prompt) and registers the resulting credential against the logged-in employee.
@@ -84,7 +95,12 @@ export async function registerFingerprint({ deviceLabel } = {}) {
     }
 
     const options = await webauthnApi.getRegistrationOptions();
-    const credential = await navigator.credentials.create({ publicKey: toCreationOptions(options) });
+    let credential;
+    try {
+        credential = await navigator.credentials.create({ publicKey: toCreationOptions(options) });
+    } catch (err) {
+        throw describeCredentialError(err, "Fingerprint registration failed.");
+    }
     if (!credential) {
         throw new Error("Fingerprint registration was cancelled.");
     }
@@ -106,7 +122,12 @@ export async function authenticateAndClock({ employeeNumber, mode, latitude, lon
     }
 
     const { stateToken, options } = await webauthnApi.getAssertionOptions({ employeeNumber });
-    const credential = await navigator.credentials.get({ publicKey: toRequestOptions(options) });
+    let credential;
+    try {
+        credential = await navigator.credentials.get({ publicKey: toRequestOptions(options) });
+    } catch (err) {
+        throw describeCredentialError(err, "Fingerprint verification failed.");
+    }
     if (!credential) {
         throw new Error("Fingerprint verification was cancelled.");
     }
