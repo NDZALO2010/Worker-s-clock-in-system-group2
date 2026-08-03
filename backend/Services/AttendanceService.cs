@@ -18,9 +18,7 @@ public class AttendanceService : IAttendanceService
     private readonly IConfiguration _config;
     private readonly ILogger<AttendanceService> _logger;
 
-    private readonly double _officeLat;
-    private readonly double _officeLong;
-    private readonly double _geofenceRadiusMeters;
+    private readonly List<GeofenceZone> _geofenceZones;
     private readonly double _standardDailyHours;
     private readonly TimeSpan _lateThreshold;
     private readonly HashSet<DayOfWeek> _workDays;
@@ -42,9 +40,10 @@ public class AttendanceService : IAttendanceService
         _config = config;
         _logger = logger;
 
-        _officeLat = double.Parse(_config["Geofence:OfficeLatitude"] ?? "-25.7479");
-        _officeLong = double.Parse(_config["Geofence:OfficeLongitude"] ?? "28.2293");
-        _geofenceRadiusMeters = double.Parse(_config["Geofence:RadiusMeters"] ?? "500");
+        _geofenceZones = _config.GetSection("Geofence:Zones").Get<List<GeofenceZone>>() ?? new List<GeofenceZone>
+        {
+            new() { Name = "Default", Latitude = -25.7479, Longitude = 28.2293, RadiusMeters = 500 }
+        };
         _standardDailyHours = double.Parse(_config["Attendance:StandardDailyHours"] ?? "8");
         _lateThreshold = TimeSpan.Parse(_config["Attendance:LateThresholdTime"] ?? "08:30:00");
         _workDays = (_config["Attendance:WorkDays"] ?? "Monday,Tuesday,Wednesday,Thursday,Friday")
@@ -55,11 +54,16 @@ public class AttendanceService : IAttendanceService
 
     public async Task<(bool Success, string Message, Guid? AttendanceId, string? EmployeeName)> ClockInAsync(ClockInRequestDto dto)
     {
-        double distance = GeoUtility.CalculateDistanceMeters(dto.Latitude, dto.Longitude, _officeLat, _officeLong);
-        if (distance > _geofenceRadiusMeters)
+        var nearestZone = _geofenceZones
+            .Select(zone => (Zone: zone, Distance: GeoUtility.CalculateDistanceMeters(dto.Latitude, dto.Longitude, zone.Latitude, zone.Longitude)))
+            .OrderBy(z => z.Distance)
+            .First();
+
+        bool withinAnyZone = nearestZone.Distance <= nearestZone.Zone.RadiusMeters;
+        if (!withinAnyZone)
         {
-            _logger.LogWarning("Clock-in rejected: Outside geofence radius ({Distance}m away)", distance);
-            return (false, $"Clock-in rejected: You are {Math.Round(distance)}m away from the permitted workplace location.", null, null);
+            _logger.LogWarning("Clock-in rejected: Outside all geofence zones (nearest: {Zone}, {Distance}m away)", nearestZone.Zone.Name, nearestZone.Distance);
+            return (false, $"Clock-in rejected: You are outside all permitted work zones. Nearest zone is \"{nearestZone.Zone.Name}\", {Math.Round(nearestZone.Distance)}m away.", null, null);
         }
 
         var identification = await IdentifyEmployeeByBiometricAsync(dto.FaceImage, dto.FingerprintImage);

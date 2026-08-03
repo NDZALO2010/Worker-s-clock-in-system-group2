@@ -1,5 +1,13 @@
 namespace BiometricCore.Utilities;
 
+public class GeofenceZone
+{
+    public string Name { get; set; } = string.Empty;
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
+    public double RadiusMeters { get; set; }
+}
+
 public static class GeoUtility
 {
     private const double EarthRadiusKm = 6371.0;
