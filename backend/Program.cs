@@ -10,6 +10,13 @@ using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Render (and similar PaaS hosts) assign the listen port via the PORT env var at runtime.
+var renderAssignedPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(renderAssignedPort))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{renderAssignedPort}");
+}
+
 // 1. Configure PostgreSQL via Entity Framework Core
 var renderedDbUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 string connectionString;
