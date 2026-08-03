@@ -23,6 +23,16 @@ function SummaryIcon() {
   );
 }
 
+function HistoryIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="12" cy="13" r="8" />
+      <path d="M12 9v4l3 2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 3h6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function SettingsIcon() {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -84,6 +94,7 @@ function UserIcon() {
 
 const NAV_ITEMS = [
   { to: "/admin", end: true, label: "Dashboard", icon: DashboardIcon, roles: null },
+  { to: "/personal-history", label: "My Attendance", icon: HistoryIcon, roles: null },
   { to: "/admin/attendance-summary", label: "Attendace Summary", icon: SummaryIcon, roles: ["Admin", "Supervisor", "HR"] },
   { to: "/admin/team-status", label: "Team Status", icon: TeamIcon, roles: ["Admin", "Supervisor", "HR"] },
   { to: "/admin/employees", label: "Employees", icon: EmployeesIcon, roles: ["Admin"] },
