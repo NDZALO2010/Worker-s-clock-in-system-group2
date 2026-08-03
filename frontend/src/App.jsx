@@ -10,7 +10,6 @@ import Settings from "./pages/admin/Settings";
 import Employees from "./pages/admin/Employees";
 import RegisterEmployee from "./pages/admin/RegisterEmployee";
 import TeamStatus from "./pages/admin/TeamStatus";
-import Notifications from "./pages/admin/Notifications";
 import AuditLogs from "./pages/admin/AuditLogs";
 
 import Login from "./pages/Login/Login";
@@ -55,7 +54,6 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route index element={<Dashboard />} />
-                    <Route path="notifications" element={<Notifications />} />
                     <Route path="settings" element={<Settings />} />
 
                     <Route element={<ProtectedRoute roles={["Admin", "Supervisor", "HR"]} />}>

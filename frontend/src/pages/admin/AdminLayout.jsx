@@ -54,15 +54,6 @@ function EmployeesIcon() {
   );
 }
 
-function BellIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M6 10a6 6 0 0112 0c0 4 1.5 5.5 1.5 5.5h-15S6 14 6 10z" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M10 19a2 2 0 004 0" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function AuditIcon() {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -96,7 +87,6 @@ const NAV_ITEMS = [
   { to: "/admin/attendance-summary", label: "Attendace Summary", icon: SummaryIcon, roles: ["Admin", "Supervisor", "HR"] },
   { to: "/admin/team-status", label: "Team Status", icon: TeamIcon, roles: ["Admin", "Supervisor", "HR"] },
   { to: "/admin/employees", label: "Employees", icon: EmployeesIcon, roles: ["Admin"] },
-  { to: "/admin/notifications", label: "Notifications", icon: BellIcon, roles: null },
   { to: "/admin/audit-logs", label: "Audit Logs", icon: AuditIcon, roles: ["Admin"] },
   { to: "/admin/settings", label: "Settings", icon: SettingsIcon, roles: null },
 ];
