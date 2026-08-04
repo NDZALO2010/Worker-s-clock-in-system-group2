@@ -58,8 +58,8 @@ public class ReportsController : ControllerBase
                 EmployeeNumber = r.Employee.EmployeeNumber,
                 EmployeeName = $"{r.Employee.FirstName} {r.Employee.LastName}",
                 Date = r.AttendanceDate.ToString("yyyy-MM-dd"),
-                ClockIn = r.ClockIn.ToString("HH:mm:ss"),
-                ClockOut = r.ClockOut?.ToString("HH:mm:ss") ?? "N/A",
+                ClockIn = SouthAfricaTime.ToSast(r.ClockIn).ToString("HH:mm:ss"),
+                ClockOut = r.ClockOut.HasValue ? SouthAfricaTime.ToSast(r.ClockOut.Value).ToString("HH:mm:ss") : "N/A",
                 TotalHoursWorked = hoursWorked,
                 OvertimeHours = AttendanceCalculator.CalculateOvertimeHours(hoursWorked, _standardDailyHours),
                 IsLate = AttendanceCalculator.IsLate(r.ClockIn, _lateThreshold)
