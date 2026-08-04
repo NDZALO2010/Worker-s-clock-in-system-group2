@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import logo from '../assets/logo.png'
+import { useAuth } from '../context/AuthContext'
 import './Landing.css'
 
 function AuthMethodModal({ mode, onSelect, onClose }) {
@@ -39,6 +40,7 @@ function AuthMethodModal({ mode, onSelect, onClose }) {
 
 function Landing() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
   const [pendingMode, setPendingMode] = useState(null)
 
   function goToScan(mode, method) {
@@ -51,10 +53,18 @@ function Landing() {
     goToScan(mode, method)
   }
 
+  // The portal is a shared kiosk entry point, so any lingering session from a
+  // previous user must be cleared here — otherwise GuestOnlyRoute would skip
+  // the login form and drop the next person straight into that account.
+  function goToPortal() {
+    logout()
+    navigate('/login')
+  }
+
   return (
     <div className="landing-page">
       <header className="landing-topbar">
-        <Link to="/login" className="admin-link">Portal</Link>
+        <button type="button" className="admin-link" onClick={goToPortal}>Portal</button>
       </header>
 
       <main className="landing-main">
