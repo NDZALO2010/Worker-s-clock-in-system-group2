@@ -116,18 +116,32 @@ public class AttendanceService : IAttendanceService
         return (true, null);
     }
 
+    private static string BuildActiveSessionMessage(AttendanceRecord activeSession, DateTime sastToday)
+    {
+        if (activeSession.AttendanceDate == sastToday)
+        {
+            return "You already have an active clock-in session for today. Please clock out first.";
+        }
+
+        return $"You have an unclosed clock-in session from {activeSession.AttendanceDate:yyyy-MM-dd} that was never clocked out. Please clock that session out (or contact an admin) before clocking in again.";
+    }
+
     private async Task<(bool Success, string Message, Guid? AttendanceId, string? EmployeeName)> ClockInCoreAsync(
         Guid employeeId, double latitude, double longitude, string deviceName, float confidence, string method)
     {
         DateTime now = DateTime.UtcNow;
         DateTime sastToday = SouthAfricaTime.ToSast(now).Date;
 
+        // Matches IX_Attendance_OneOpenSessionPerEmployee, which allows only one open session
+        // per employee across all dates (not just today), so a session left open from a
+        // previous day is caught here with an accurate message instead of being missed and
+        // only surfacing later as a same-day duplicate via the unique-violation handler below.
         var activeSession = await _db.Attendance
-            .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.ClockOut == null && a.AttendanceDate == sastToday);
+            .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.ClockOut == null);
 
         if (activeSession != null)
         {
-            return (false, "You already have an active clock-in session for today. Please clock out first.", null, null);
+            return (false, BuildActiveSessionMessage(activeSession, sastToday), null, null);
         }
 
         var attendanceRecord = new AttendanceRecord
@@ -153,7 +167,17 @@ public class AttendanceService : IAttendanceService
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
             _logger.LogWarning("Concurrent clock-in detected for Employee {EmployeeId}; rejecting duplicate.", employeeId);
-            return (false, "You already have an active clock-in session for today. Please clock out first.", null, null);
+
+            var existingSession = await _db.Attendance
+                .AsNoTracking()
+                .Where(a => a.EmployeeId == employeeId && a.ClockOut == null)
+                .FirstOrDefaultAsync();
+
+            var message = existingSession != null
+                ? BuildActiveSessionMessage(existingSession, sastToday)
+                : "You already have an active clock-in session. Please clock out first.";
+
+            return (false, message, null, null);
         }
 
         _logger.LogInformation("Employee {EmployeeId} clocked in successfully via {Method}.", employeeId, method);

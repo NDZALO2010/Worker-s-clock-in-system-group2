@@ -133,13 +133,22 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// CORS must run first: it registers its response-header logic via Response.OnStarting, which
+// only fires if this middleware actually got invoked. Anything that throws upstream of it
+// (e.g. AuditLogMiddleware failing a DB write) would otherwise reach the browser with no
+// Access-Control-Allow-Origin header, surfacing as an opaque "CORS error" instead of the
+// real exception.
+app.UseCors("ClockItClients");
+
+// Catches anything unhandled further down the pipeline and turns it into a clean JSON
+// response, so failures never look like CORS errors and callers always get a JSON body.
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
 // 4. Register Custom Audit Log Middleware
 app.UseMiddleware<AuditLogMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
-app.UseCors("ClockItClients");
 
 app.UseAuthentication();
 app.UseAuthorization();
